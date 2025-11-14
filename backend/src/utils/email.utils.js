@@ -18,7 +18,7 @@ const sendMail=async (reciver ,otp) => {
   const info = await transporter.sendMail({
     from: `Yara Srinibas ${process.env.SENDER}`,
     to: reciver,
-    subject:(otp)?"OTP for yamazone verification ": "Hello ",
+    subject:(otp)?"OTP for yamazone verification ": "Hello , here is the admin contact:+918117032137 , contact to get verified",
     html: (otp)?`here is your otp for <b>yamazone:<h1>${otp}</h1></b>`:"<h1><b>Welcome to yamazone!</b></h1>", // HTML body
   });
 
