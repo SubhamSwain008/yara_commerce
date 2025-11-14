@@ -129,4 +129,60 @@ export const merchantAuth = async (req, res) => {
     return res.status(200).json({ message: "auth sucess", id: user._id, email: user.email, fullName: user.fullName });
 }
 
+export const merchantForgetPassowrd=async(req,res)=>{
+    const {email}=req.body;
+    if(!email || !req.body) return res.status(400).json({message:"please provie the email"});
+
+    const otp= Math.round(Math.random()*10000);
+    const user= await Merchants.findOne({email});
+    if(!user) return res.status(400).json({message:"user not found please register"});
+
+    user.otp=otp;
+
+    try{
+       await user.save();
+       const send=await sendMail(email,otp);
+       return res.status(200).json({message:"otp sent sucessfully"});
+
+    }
+    catch(e){
+        console.log(e);
+        return res.status(400).json({message:"failed to send otp due to internal error"});
+    }
+
+}
+export const mercahantChangePassword=async(req,res)=>{
+    const {email,otp,password}=req.body;
+
+    if(!otp || !email) return res.status(400).json({message:" otp is missing or invalid"});
+    if(!password) return res.status(400).json({message:"provide password "});
+
+    const user= await Merchants.findOne({email});
+    if(!user) return res.status(404).json({message:"user not found please try sending otp again"});
+   try{
+
+   
+    if(user.otp===otp){
+        user.otp=null;
+
+        const saltRound=10;
+        const salt= await bcrypt.genSalt(saltRound);
+        const hashed_password=await bcrypt.hash(password,salt);
+
+        user.password=hashed_password;
+
+        await user.save();
+
+        return res.status(200).json({message:"password changed"});
+
+    }else{
+        return res.status(400).json({message:"otp didn't match, try resending otp "});
+    }
+}
+catch(e)
+    {    
+        console.log(e);
+        return res.status(400).json({message:"failed due to internal error",e})
+    }
+}
 

@@ -1,5 +1,5 @@
 import express from "express";
-import { mercahantSignup, mercahantSendOtp, mercahantVerifyOtp, mercahantLogin, merchantLogout, merchantAuth } from "../../contoller/auth/merchant.auth.controllers.js";
+import { mercahantSignup, mercahantSendOtp, mercahantVerifyOtp, mercahantLogin, merchantLogout, merchantAuth,merchantForgetPassowrd,mercahantChangePassword} from "../../contoller/auth/merchant.auth.controllers.js";
 
 import { protectedRoute } from "../../../middleware/jwt.middleware.js";
 
@@ -17,6 +17,8 @@ Auth_router.get("/merch-otp", mercahantSendOtp);
 Auth_router.get("/merch-otpv", mercahantVerifyOtp);
 Auth_router.post("/merch-login", mercahantLogin);
 Auth_router.post("/merch-logout", merchantLogout);
+Auth_router.post("/merch-forgot",merchantForgetPassowrd);
+Auth_router.post("/merch-changePassword",mercahantChangePassword);
 Auth_router.post("/merch-authCheck", protectedRoute, merchantAuth);
 
 
