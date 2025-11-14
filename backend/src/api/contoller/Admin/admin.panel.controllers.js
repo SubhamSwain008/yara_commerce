@@ -15,5 +15,20 @@ export const showUnverifiedMerchants=async(req,res)=>{
 }
 
 export const verifyUsers=async(req,res)=>{
+   if(!req.user.isAdmin) return res.status(400).json({message:"you are not admin!"});
+
+   const {email}= req.body;
+
+   if(!email) return res.status(200).json({message:"provide the email first"});
+
+   try{
+      const userToUpdate=await Merchants.findOne({email});
+      if(!userToUpdate) return res.status(400).json({message:"user not found"});
+      
+   }catch(e){
+      console.log(e);
+      return res.status(400).json({message:"can not verify user due to internal errors"})
+   }
+
    
 }
