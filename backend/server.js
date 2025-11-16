@@ -6,7 +6,7 @@ import Auth_router from './src/api/routes/auth/auth.routes.js';
 import ProductRoutes from './src/api/routes/product/products.routs.js';
 import cookieParser from "cookie-parser";
 import adminRouter from './src/api/routes/admin/admin.panel.routes.js';
-
+import cors from "cors";
 ;(async()=>{
     await connectdb();
 })();
@@ -14,6 +14,10 @@ import adminRouter from './src/api/routes/admin/admin.panel.routes.js';
 
 
 const app=express();
+app.use(cors({
+    origin:process.env.FRONTEND_URL,
+    credentials: true,
+}))
 app.use(cookieParser());
 app.use(express.json());
 app.use("/api/auth",Auth_router);
@@ -22,5 +26,5 @@ app.use("/api/products",ProductRoutes);
 
 
 app.listen(process.env.PORT,()=>{
-    console.log(`deafult path http://localhost:${process.env.PORT}/api/auth/running`);
+    console.log(`deafult path http://localhost:${process.env.PORT}`);
 });
