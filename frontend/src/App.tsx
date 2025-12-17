@@ -1,12 +1,18 @@
-
-import Login from './componets/auth/longin.tsx';
-
+import MercahntLogin from './componets/auth/Merchantlongin.tsx';
+import { Route,Routes ,Navigate} from 'react-router-dom';
+import MerchantSignup from './componets/auth/Merchantsignup.tsx';
+import Merchantdash from './componets/pages/merchant/Merchantdash.tsx';
 
 function App() {
   
 
   return(<>
-  <Login/>
+  <Routes>
+      <Route path='/MerchDash' element={<Merchantdash/>}/>
+     <Route path="/" element={<Navigate to="/m-login" replace />} />
+    <Route path='/m-login' element={<MercahntLogin/>}/>
+    <Route path='/m-signup' element={<MerchantSignup/>}/>
+  </Routes>
   </>)
 }
 

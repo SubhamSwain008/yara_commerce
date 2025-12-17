@@ -31,12 +31,10 @@ export const addProduct=async(req,res)=>{
    const prodRes=await newProduct.save();
 
    await user.save();
-
-
-    return res.status(200).json({message:"product added",prodRes});
+   return res.status(200).json({message:"product added",prodRes});
 
 } catch(e){
     console.log(e);
-    return res.status(400).json({message:"prodcut could not be added due to internal errors"});
+    return res.status(400).json({message:"prodcut could not be added due to internal errors",error:e.name});
 }
 }
