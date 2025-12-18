@@ -61,7 +61,7 @@ try{
     </form>
     <p>{errorMessage}</p>
     <p>already have an account ?</p>
-    <button onClick={()=>nav("/login")}>login</button>
+    <button onClick={()=>nav("/m-login")}>login</button>
     </div>}
     </>
   );

@@ -2,7 +2,7 @@ import mongoose  from "mongoose";
 
 
 const UserSchema=new mongoose.Schema({
-    FullName:{
+    fullName:{
         type:String,
         required:true,
     },
@@ -30,7 +30,17 @@ const UserSchema=new mongoose.Schema({
     address:[{
         type:String,
         required:true,
-    }]
+    }],
+    otp:{
+        type:String,
+        defeault:null,
+    },
+    isVerified:{
+        type:Boolean,
+        default:false
+    }
 },{timestamps:true});
 
-export const Users= mongoose.model("Users",UserSchema);
+const Users= mongoose.model("Users",UserSchema);
+
+export default Users;

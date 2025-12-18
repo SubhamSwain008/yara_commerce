@@ -3,7 +3,7 @@ import { mercahantSignup, mercahantSendOtp, mercahantVerifyOtp, mercahantLogin, 
 
 import { protectedRoute } from "../../../middleware/jwt.middleware.js";
 
-
+import { userSignup,UserOtpVerification } from "../../contoller/auth/user.auth.controllers.js";
 const Auth_router = express.Router();
 
 Auth_router.get("/running", (req, res) => {
@@ -26,8 +26,8 @@ Auth_router.post("/merch-authCheck", protectedRoute, merchantAuth);
 
 //user login 
 
-Auth_router.post("/signup", (req, res) => { });
-Auth_router.post("/login", (req, res) => { });
+Auth_router.post("/signup", userSignup);
+Auth_router.post("/otp-verify", UserOtpVerification);
 Auth_router.post("/authCheck", (req, res) => { });
 
 

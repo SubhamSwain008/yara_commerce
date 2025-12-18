@@ -19,7 +19,7 @@ const sendMail=async (reciver ,otp) => {
     from: `Yara Srinibas ${process.env.SENDER}`,
     to: reciver,
     subject:(otp)?"OTP for yamazone verification ": "Hello ",
-    html: (otp)?`here is your otp for <b>yamazone:<h1>${otp}</h1></b>`:"Welcome to yamazone!, here is the admin contact:<h1><b>+918117032137 </b></h1>, to get verified", // HTML body
+    html: (otp)?`here is your otp for <b>yamazone:<h1>${otp}</h1></b>`:"Welcome to yamazone!, for merchant account - here is the admin contact:<h1><b>+918117032137 </b></h1>, to get verified", // HTML body
   });
 
   console.log("Message sent:", info.messageId);
