@@ -29,7 +29,7 @@ export default async function RootLayout({
   const user = data?.user ?? null;
 
   return (
-    <html lang="en">
+    <html lang="en" style={{backgroundColor: '#FFF8E7'}}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

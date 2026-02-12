@@ -2,7 +2,8 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import gsap from "gsap";
 import Image from "next/image";
 
 export default function SignupForm() {
@@ -10,6 +11,104 @@ export default function SignupForm() {
   const router = useRouter();
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const circleRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  /* ------------------ INTRO SEQUENCE (copied from login-form) ------------------ */
+  useEffect(() => {
+    const tl = gsap.timeline();
+
+    if (circleRef.current) {
+      gsap.set(circleRef.current, {
+        transformOrigin: "50% 50%",
+        scale: 18,
+        filter: "blur(90px)",
+        opacity: 1,
+      });
+
+      tl.to(circleRef.current, {
+        scale: 3,
+        filter: "blur(40px)",
+        duration: 0.0,
+        ease: "power3.out",
+      })
+        .to(circleRef.current, {
+          scale: 1.25,
+          filter: "blur(18px)",
+          duration: 1.8,
+          ease: "power4.out",
+        })
+        .to(circleRef.current, {
+          scale: 1,
+          filter: "blur(12px)",
+          duration: 1.2,
+          ease: "expo.out",
+        });
+    }
+
+    if (logoRef.current) {
+      gsap.set(logoRef.current, { scale: 0.82, opacity: 0 });
+
+      tl.to(
+        logoRef.current,
+        {
+          scale: 1.05,
+          opacity: 1,
+          duration: 1.6,
+          ease: "power3.out",
+        },
+        "-=1.4"
+      ).to(logoRef.current, {
+        scale: 1,
+        duration: 1.1,
+        ease: "power2.out",
+      });
+    }
+
+    if (cardRef.current) {
+      gsap.set(cardRef.current, { y: 120, opacity: 0 });
+
+      tl.to(cardRef.current, {
+        y: 0,
+        opacity: 1,
+        duration: 1.5,
+        ease: "power4.out",
+      }, "+=0.25");
+    }
+
+    return () => {
+      tl.kill();
+    };
+  }, []);
+
+  /* ------------------ LOADING ENERGY (copied from login-form) ------------------ */
+  useEffect(() => {
+    let tween: gsap.core.Tween | undefined;
+
+    if (loading && circleRef.current) {
+      tween = gsap.to(circleRef.current, {
+        scale: 1.15,
+        filter: "blur(18px)",
+        duration: 1.6,
+        ease: "sine.inOut",
+        repeat: -1,
+        yoyo: true,
+      });
+    } else if (circleRef.current) {
+      gsap.killTweensOf(circleRef.current);
+      gsap.to(circleRef.current, {
+        scale: 1,
+        filter: "blur(12px)",
+        duration: 1.4,
+      });
+    }
+
+    return () => {
+      tween?.kill();
+    };
+  }, [loading]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -59,10 +158,12 @@ export default function SignupForm() {
         <div className="flex flex-col items-center justify-center mb-8 text-center">
           <div className="relative w-88 h-88 md:w-104 md:h-104 mb-6">
             <div
-              className="absolute inset-0 rounded-full blur-2xl opacity-20"
+              ref={circleRef}
+              className="absolute inset-0 rounded-full"
               style={{ backgroundColor: '#E0A11B' }}
             />
             <div
+              ref={logoRef}
               className="relative w-full h-full rounded-full overflow-hidden shadow-2xl"
               style={{
                 backgroundColor: '#FFFFFF',
@@ -89,6 +190,7 @@ export default function SignupForm() {
 
         {/* Card */}
         <div
+          ref={cardRef}
           className="rounded-3xl shadow-2xl p-8 backdrop-blur-sm"
           style={{
             backgroundColor: '#FFFFFF',
