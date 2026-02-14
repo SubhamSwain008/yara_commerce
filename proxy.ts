@@ -33,11 +33,13 @@ export async function proxy(req: NextRequest) {
   // Refresh the auth session so it doesn't expire
   const { data } = await supabase.auth.getUser();
 
+  // ── Public routes — accessible WITHOUT login ──
   const publicRoutes = ["/login", "/signup", "/auth/callback", "/"];
+  const publicPrefixes = ["/auth/", "/home", "/products", "/api/products"];
 
-  const isPublic = publicRoutes.some((route) =>
-    req.nextUrl.pathname === route || req.nextUrl.pathname.startsWith("/auth/")
-  );
+  const isPublic =
+    publicRoutes.some((route) => req.nextUrl.pathname === route) ||
+    publicPrefixes.some((prefix) => req.nextUrl.pathname.startsWith(prefix));
 
   if (!data.user && !isPublic) {
     return NextResponse.redirect(new URL("/login", req.url));

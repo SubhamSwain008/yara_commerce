@@ -51,9 +51,7 @@ export default function AdminSellersPage() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchSellers();
-    }, []);
+    useEffect(() => { fetchSellers(); }, []);
 
     const fetchSellers = async () => {
         try {
@@ -61,29 +59,18 @@ export default function AdminSellersPage() {
             const res = await axios.get("/api/admin/sellers");
             setSellers(res.data.sellers || []);
         } catch (err: any) {
-            if (err?.response?.status === 403) {
-                setError("You do not have admin access.");
-            } else {
-                setError("Failed to fetch sellers");
-            }
-        } finally {
-            setLoading(false);
-        }
+            if (err?.response?.status === 403) setError("You do not have admin access.");
+            else setError("Failed to fetch sellers");
+        } finally { setLoading(false); }
     };
 
     const handleAction = async (sellerId: string, action: "approve" | "reject") => {
         try {
-            setActionLoading(sellerId);
-            setError(null);
+            setActionLoading(sellerId); setError(null);
             await axios.post("/api/admin/sellers", { sellerId, action });
             setSuccess(`Seller ${action === "approve" ? "approved" : "rejected"} successfully`);
-            // Refresh
             await fetchSellers();
-        } catch (err: any) {
-            setError(err?.response?.data?.error || `Failed to ${action} seller`);
-        } finally {
-            setActionLoading(null);
-        }
+        } catch (err: any) { setError(err?.response?.data?.error || `Failed to ${action} seller`); } finally { setActionLoading(null); }
     };
 
     const getStatus = (s: SellerProfile): "pending" | "approved" | "rejected" => {
@@ -92,10 +79,7 @@ export default function AdminSellersPage() {
         return "rejected";
     };
 
-    const filtered = sellers.filter((s) => {
-        if (tab === "all") return true;
-        return getStatus(s) === tab;
-    });
+    const filtered = sellers.filter((s) => { if (tab === "all") return true; return getStatus(s) === tab; });
 
     const counts = {
         pending: sellers.filter((s) => s.isRequestedForSeller && !s.isApprovedByAdmin).length,
@@ -106,194 +90,157 @@ export default function AdminSellersPage() {
 
     const statusBadge = (s: SellerProfile) => {
         const status = getStatus(s);
-        if (status === "approved")
-            return (
-                <span className="inline-flex items-center gap-1 text-xs font-medium bg-green-100 text-green-700 px-2.5 py-1 rounded-full">
-                    <CheckCircle size={12} /> Approved
-                </span>
-            );
-        if (status === "pending")
-            return (
-                <span className="inline-flex items-center gap-1 text-xs font-medium bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full">
-                    <Clock size={12} /> Pending
-                </span>
-            );
+        const styles: Record<string, React.CSSProperties> = {
+            approved: { backgroundColor: "rgba(34,139,34,0.08)", color: "#2d6a2d", border: "1px solid rgba(34,139,34,0.15)" },
+            pending: { backgroundColor: "rgba(224,161,27,0.08)", color: "#9a7520", border: "1px solid rgba(224,161,27,0.2)" },
+            rejected: { backgroundColor: "rgba(165,18,18,0.06)", color: "var(--color-secondary)", border: "1px solid rgba(165,18,18,0.15)" },
+        };
+        const icons = { approved: <CheckCircle size={12} />, pending: <Clock size={12} />, rejected: <XCircle size={12} /> };
+        const labels = { approved: "Approved", pending: "Pending", rejected: "Rejected" };
         return (
-            <span className="inline-flex items-center gap-1 text-xs font-medium bg-red-100 text-red-700 px-2.5 py-1 rounded-full">
-                <XCircle size={12} /> Rejected
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 50, ...styles[status] }}>
+                {icons[status]} {labels[status]}
             </span>
         );
     };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center py-20">
-                <Loader2 className="animate-spin text-gray-400" size={32} />
-            </div>
-        );
-    }
+    if (loading) return (
+        <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
+            <Loader2 className="animate-spin" size={32} style={{ color: "var(--color-primary)" }} />
+        </div>
+    );
 
-    if (error && sellers.length === 0) {
-        return (
-            <div className="max-w-4xl mx-auto p-6">
-                <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-                    <Shield className="mx-auto text-red-400 mb-3" size={40} />
-                    <p className="text-red-700 font-medium">{error}</p>
-                </div>
+    if (error && sellers.length === 0) return (
+        <div style={{ maxWidth: 800, margin: "0 auto", padding: 24 }}>
+            <div style={{ backgroundColor: "rgba(165,18,18,0.04)", border: "1px solid rgba(165,18,18,0.12)", borderRadius: 14, padding: "40px 32px", textAlign: "center" }}>
+                <Shield size={40} style={{ color: "var(--color-secondary)", margin: "0 auto 12px" }} />
+                <p style={{ color: "var(--color-secondary)", fontWeight: 600 }}>{error}</p>
             </div>
-        );
-    }
+        </div>
+    );
 
     return (
-        <div className="max-w-5xl mx-auto p-6 space-y-6">
-            <div className="flex items-center gap-3">
-                <Shield size={28} className="text-gray-700" />
-                <h1 className="text-2xl font-bold">Seller Management</h1>
+        <div style={{ maxWidth: 1000, margin: "0 auto", padding: 24 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
+                <Shield size={24} style={{ color: "var(--color-primary)" }} />
+                <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--color-bg-dark)" }}>Seller Management</h1>
             </div>
 
-            {error && (
-                <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">{error}</div>
-            )}
-            {success && (
-                <div className="p-3 bg-green-100 text-green-700 rounded-lg text-sm">{success}</div>
-            )}
+            {error && <div style={{ padding: 12, backgroundColor: "rgba(165,18,18,0.06)", border: "1px solid rgba(165,18,18,0.15)", color: "var(--color-secondary)", borderRadius: 10, fontSize: 13, marginBottom: 16 }}>{error}</div>}
+            {success && <div style={{ padding: 12, backgroundColor: "rgba(34,139,34,0.06)", border: "1px solid rgba(34,139,34,0.15)", color: "#2d6a2d", borderRadius: 10, fontSize: 13, marginBottom: 16 }}>{success}</div>}
 
             {/* Tabs */}
-            <div className="flex gap-2 border-b border-gray-200 pb-1">
+            <div style={{ display: "flex", gap: 4, borderBottom: "2px solid #e8dcc8", marginBottom: 24 }}>
                 {(["pending", "approved", "rejected", "all"] as Tab[]).map((t) => (
                     <button
                         key={t}
                         onClick={() => { setTab(t); setSuccess(null); setError(null); }}
-                        className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${tab === t
-                            ? "bg-white border border-b-0 border-gray-200 text-black -mb-px"
-                            : "text-gray-500 hover:text-gray-700"
-                            }`}
+                        style={{
+                            padding: "10px 20px", fontSize: 13, fontWeight: 600,
+                            border: "none", borderBottom: tab === t ? "2px solid var(--color-primary)" : "2px solid transparent",
+                            marginBottom: -2, cursor: "pointer", transition: "all .2s",
+                            backgroundColor: tab === t ? "rgba(224,161,27,0.06)" : "transparent",
+                            color: tab === t ? "var(--color-bg-dark)" : "#8a7560",
+                            borderRadius: "8px 8px 0 0",
+                        }}
                     >
-                        {t.charAt(0).toUpperCase() + t.slice(1)}{" "}
-                        <span className="text-xs text-gray-400">({counts[t]})</span>
+                        {t.charAt(0).toUpperCase() + t.slice(1)} <span style={{ fontSize: 11, opacity: 0.7 }}>({counts[t]})</span>
                     </button>
                 ))}
             </div>
 
             {/* Seller List */}
             {filtered.length === 0 ? (
-                <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed">
+                <div style={{ textAlign: "center", padding: "48px 0", backgroundColor: "rgba(224,161,27,0.04)", borderRadius: 14, border: "1px dashed var(--color-border)", color: "#8a7560" }}>
                     No sellers in this category.
                 </div>
             ) : (
-                <div className="space-y-3">
+                <div style={{ display: "grid", gap: 12 }}>
                     {filtered.map((seller) => {
                         const isExpanded = expandedId === seller.id;
                         return (
-                            <div
-                                key={seller.id}
-                                className="border border-gray-200 rounded-xl bg-white overflow-hidden"
-                            >
+                            <div key={seller.id} style={{ border: "1px solid #e8dcc8", borderRadius: 14, backgroundColor: "var(--color-bg-light)", overflow: "hidden" }}>
                                 {/* Summary Row */}
                                 <div
-                                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                                    style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 16, cursor: "pointer", transition: "all .2s" }}
                                     onClick={() => setExpandedId(isExpanded ? null : seller.id)}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(224,161,27,0.03)"}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
                                 >
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                            <Store size={18} className="text-gray-500" />
+                                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                        <div style={{ width: 40, height: 40, borderRadius: "50%", backgroundColor: "rgba(224,161,27,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                            <Store size={18} style={{ color: "var(--color-primary)" }} />
                                         </div>
                                         <div>
-                                            <p className="font-medium text-gray-900">
-                                                {seller.shopName || "Unnamed Shop"}
-                                            </p>
-                                            <p className="text-sm text-gray-500">{seller.user.email}</p>
+                                            <p style={{ fontWeight: 600, fontSize: 14, color: "var(--color-bg-dark)" }}>{seller.shopName || "Unnamed Shop"}</p>
+                                            <p style={{ fontSize: 12, color: "#8a7560" }}>{seller.user.email}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
+                                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                         {statusBadge(seller)}
-                                        {isExpanded ? (
-                                            <ChevronUp size={18} className="text-gray-400" />
-                                        ) : (
-                                            <ChevronDown size={18} className="text-gray-400" />
-                                        )}
+                                        {isExpanded ? <ChevronUp size={18} style={{ color: "#a09080" }} /> : <ChevronDown size={18} style={{ color: "#a09080" }} />}
                                     </div>
                                 </div>
 
                                 {/* Expanded Details */}
                                 {isExpanded && (
-                                    <div className="border-t border-gray-100 p-5 space-y-5 bg-gray-50/50">
-                                        {/* Profile Info */}
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div style={{ borderTop: "1px solid #ede4d4", padding: 20 }}>
+                                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, marginBottom: 20 }}>
                                             <div>
-                                                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                                                    <Eye size={14} /> Personal Details
+                                                <h4 style={{ fontSize: 12, fontWeight: 700, color: "#8a7560", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8, display: "flex", alignItems: "center", gap: 4 }}>
+                                                    <Eye size={12} /> Personal
                                                 </h4>
                                                 {seller.user.userProfile ? (
-                                                    <div className="space-y-1 text-sm">
+                                                    <div style={{ fontSize: 13, color: "var(--color-bg-dark)", lineHeight: 1.8 }}>
                                                         <p><strong>Name:</strong> {`${seller.user.userProfile.firstName ?? ""} ${seller.user.userProfile.lastName ?? ""}`.trim() || "—"}</p>
                                                         <p><strong>Phone:</strong> {seller.user.userProfile.phone ?? "—"}</p>
                                                         <p><strong>Age:</strong> {seller.user.userProfile.age ?? "—"}</p>
                                                         <p><strong>Gender:</strong> {seller.user.userProfile.gender ?? "—"}</p>
                                                     </div>
-                                                ) : (
-                                                    <p className="text-sm text-gray-400">No profile data</p>
-                                                )}
+                                                ) : <p style={{ fontSize: 13, color: "#a09080" }}>No profile data</p>}
                                             </div>
                                             <div>
-                                                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                                                    <Store size={14} /> Shop Details
+                                                <h4 style={{ fontSize: 12, fontWeight: 700, color: "#8a7560", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8, display: "flex", alignItems: "center", gap: 4 }}>
+                                                    <Store size={12} /> Shop
                                                 </h4>
-                                                <div className="space-y-1 text-sm">
+                                                <div style={{ fontSize: 13, color: "var(--color-bg-dark)", lineHeight: 1.8 }}>
                                                     <p><strong>Shop:</strong> {seller.shopName ?? "—"}</p>
                                                     <p><strong>GST:</strong> {seller.gstNumber ?? "—"}</p>
                                                     <p><strong>Email:</strong> {seller.user.email}</p>
                                                 </div>
                                             </div>
                                             <div>
-                                                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                                                    <MapPin size={14} /> Address
+                                                <h4 style={{ fontSize: 12, fontWeight: 700, color: "#8a7560", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8, display: "flex", alignItems: "center", gap: 4 }}>
+                                                    <MapPin size={12} /> Address
                                                 </h4>
                                                 {seller.sellerAddress ? (
-                                                    <div className="space-y-1 text-sm">
+                                                    <div style={{ fontSize: 13, color: "var(--color-bg-dark)", lineHeight: 1.8 }}>
                                                         <p>{seller.sellerAddress.street ?? "—"}</p>
-                                                        <p>
-                                                            {seller.sellerAddress.city ?? "—"},{" "}
-                                                            {seller.sellerAddress.state ?? "—"}{" "}
-                                                            {seller.sellerAddress.zipCode ?? ""}
-                                                        </p>
+                                                        <p>{seller.sellerAddress.city ?? "—"}, {seller.sellerAddress.state ?? "—"} {seller.sellerAddress.zipCode ?? ""}</p>
                                                         <p>{seller.sellerAddress.country ?? "—"}</p>
                                                     </div>
-                                                ) : (
-                                                    <p className="text-sm text-gray-400">No address provided</p>
-                                                )}
+                                                ) : <p style={{ fontSize: 13, color: "#a09080" }}>No address provided</p>}
                                             </div>
                                         </div>
 
                                         {/* Documents */}
-                                        <div>
-                                            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-1">
-                                                <FileText size={14} /> Documents
+                                        <div style={{ marginBottom: 20 }}>
+                                            <h4 style={{ fontSize: 12, fontWeight: 700, color: "#8a7560", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 12, display: "flex", alignItems: "center", gap: 4 }}>
+                                                <FileText size={12} /> Documents
                                             </h4>
                                             {seller.sellerDocs ? (
-                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                                    {(
-                                                        [
-                                                            ["panCardFront", "PAN Front"],
-                                                            ["panCardBack", "PAN Back"],
-                                                            ["aadharCardFront", "Aadhaar Front"],
-                                                            ["aadharCardBack", "Aadhaar Back"],
-                                                        ] as const
-                                                    ).map(([key, label]) => {
+                                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
+                                                    {([["panCardFront", "PAN Front"], ["panCardBack", "PAN Back"], ["aadharCardFront", "Aadhaar Front"], ["aadharCardBack", "Aadhaar Back"]] as const).map(([key, label]) => {
                                                         const url = (seller.sellerDocs as any)?.[key];
                                                         return (
-                                                            <div key={key} className="text-center">
-                                                                <p className="text-xs text-gray-500 mb-1">{label}</p>
+                                                            <div key={key} style={{ textAlign: "center" }}>
+                                                                <p style={{ fontSize: 11, color: "#8a7560", marginBottom: 4, fontWeight: 600 }}>{label}</p>
                                                                 {url ? (
                                                                     <a href={url} target="_blank" rel="noopener noreferrer">
-                                                                        <img
-                                                                            src={url}
-                                                                            alt={label}
-                                                                            className="w-full h-24 object-cover rounded-lg border border-gray-200 hover:border-blue-400 transition-colors"
-                                                                        />
+                                                                        <img src={url} alt={label} style={{ width: "100%", height: 96, objectFit: "cover", borderRadius: 10, border: "1px solid #e8dcc8", transition: "border-color .2s" }} />
                                                                     </a>
                                                                 ) : (
-                                                                    <div className="w-full h-24 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400">
+                                                                    <div style={{ width: "100%", height: 96, backgroundColor: "rgba(224,161,27,0.04)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#a09080" }}>
                                                                         Not uploaded
                                                                     </div>
                                                                 )}
@@ -301,30 +248,38 @@ export default function AdminSellersPage() {
                                                         );
                                                     })}
                                                 </div>
-                                            ) : (
-                                                <p className="text-sm text-gray-400">No documents uploaded</p>
-                                            )}
+                                            ) : <p style={{ fontSize: 13, color: "#a09080" }}>No documents uploaded</p>}
                                         </div>
 
                                         {/* Actions */}
-                                        <div className="flex gap-3 pt-2 border-t border-gray-200">
+                                        <div style={{ display: "flex", gap: 10, paddingTop: 16, borderTop: "1px solid #ede4d4" }}>
                                             {getStatus(seller) === "pending" && (
                                                 <>
                                                     <button
                                                         onClick={() => handleAction(seller.id, "approve")}
                                                         disabled={actionLoading === seller.id}
-                                                        className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                                                        style={{
+                                                            display: "inline-flex", alignItems: "center", gap: 6,
+                                                            padding: "8px 18px", backgroundColor: "var(--color-primary)",
+                                                            color: "var(--color-bg-dark)", border: "none", borderRadius: 10,
+                                                            fontWeight: 600, fontSize: 13, cursor: "pointer",
+                                                            opacity: actionLoading === seller.id ? 0.6 : 1,
+                                                        }}
                                                     >
-                                                        <CheckCircle size={14} />
-                                                        {actionLoading === seller.id ? "Processing..." : "Approve"}
+                                                        <CheckCircle size={14} /> {actionLoading === seller.id ? "Processing..." : "Approve"}
                                                     </button>
                                                     <button
                                                         onClick={() => handleAction(seller.id, "reject")}
                                                         disabled={actionLoading === seller.id}
-                                                        className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                                                        style={{
+                                                            display: "inline-flex", alignItems: "center", gap: 6,
+                                                            padding: "8px 18px", backgroundColor: "rgba(165,18,18,0.08)",
+                                                            color: "var(--color-secondary)", border: "1px solid rgba(165,18,18,0.15)", borderRadius: 10,
+                                                            fontWeight: 600, fontSize: 13, cursor: "pointer",
+                                                            opacity: actionLoading === seller.id ? 0.6 : 1,
+                                                        }}
                                                     >
-                                                        <XCircle size={14} />
-                                                        Reject
+                                                        <XCircle size={14} /> Reject
                                                     </button>
                                                 </>
                                             )}
@@ -332,20 +287,30 @@ export default function AdminSellersPage() {
                                                 <button
                                                     onClick={() => handleAction(seller.id, "reject")}
                                                     disabled={actionLoading === seller.id}
-                                                    className="flex items-center gap-1.5 px-4 py-2 bg-red-100 text-red-700 text-sm rounded-lg hover:bg-red-200 disabled:opacity-50 transition-colors"
+                                                    style={{
+                                                        display: "inline-flex", alignItems: "center", gap: 6,
+                                                        padding: "8px 18px", backgroundColor: "rgba(165,18,18,0.06)",
+                                                        color: "var(--color-secondary)", border: "1px solid rgba(165,18,18,0.12)", borderRadius: 10,
+                                                        fontWeight: 600, fontSize: 13, cursor: "pointer",
+                                                        opacity: actionLoading === seller.id ? 0.6 : 1,
+                                                    }}
                                                 >
-                                                    <XCircle size={14} />
-                                                    Revoke Approval
+                                                    <XCircle size={14} /> Revoke Approval
                                                 </button>
                                             )}
                                             {getStatus(seller) === "rejected" && (
                                                 <button
                                                     onClick={() => handleAction(seller.id, "approve")}
                                                     disabled={actionLoading === seller.id}
-                                                    className="flex items-center gap-1.5 px-4 py-2 bg-green-100 text-green-700 text-sm rounded-lg hover:bg-green-200 disabled:opacity-50 transition-colors"
+                                                    style={{
+                                                        display: "inline-flex", alignItems: "center", gap: 6,
+                                                        padding: "8px 18px", backgroundColor: "var(--color-primary)",
+                                                        color: "var(--color-bg-dark)", border: "none", borderRadius: 10,
+                                                        fontWeight: 600, fontSize: 13, cursor: "pointer",
+                                                        opacity: actionLoading === seller.id ? 0.6 : 1,
+                                                    }}
                                                 >
-                                                    <CheckCircle size={14} />
-                                                    Re-approve
+                                                    <CheckCircle size={14} /> Re-approve
                                                 </button>
                                             )}
                                         </div>

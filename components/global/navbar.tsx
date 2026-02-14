@@ -220,7 +220,7 @@ export default function Navbar() {
                                                 href="/products"
                                                 style={{
                                                     fontSize: 13,
-                                                    color: "#7b2d8e",
+                                                    color: "var(--color-primary)",
                                                     fontWeight: 600,
                                                     textDecoration: "none",
                                                 }}
