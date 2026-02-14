@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import gsap from "gsap";
 import axios from "axios";
 import { Loader2, Package, Star, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -25,6 +26,9 @@ export default function HomePage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [featured, setFeatured] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const heroRef = useRef<HTMLDivElement | null>(null);
+    const heroOverlayRef = useRef<HTMLDivElement | null>(null);
+    const orbRefs = useRef<HTMLDivElement[]>([]);
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -43,6 +47,50 @@ export default function HomePage() {
         fetchAll();
     }, []);
 
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        const heroEl = heroRef.current;
+        const heroOverlay = heroOverlayRef.current;
+        const orbs = orbRefs.current.filter(Boolean);
+
+        const tl = gsap.timeline({ defaults: { ease: "sine.inOut" } });
+
+        if (heroOverlay) {
+            tl.to(heroOverlay, { backgroundPosition: "70% 35%", duration: 28, repeat: -1, yoyo: true, ease: "sine.inOut" }, 0);
+            tl.to(heroOverlay, { opacity: 0.12, duration: 14, repeat: -1, yoyo: true, ease: "sine.inOut" }, 0);
+        }
+
+        if (orbs.length) {
+            gsap.set(orbs, { transformOrigin: "50% 50%" });
+            // slow, smooth drifting
+            gsap.to(orbs, {
+                y: "+=28",
+                x: "+=38",
+                rotation: "+=2",
+                duration: 12,
+                repeat: -1,
+                yoyo: true,
+                stagger: 0.6,
+                ease: "sine.inOut",
+                force3D: true,
+            });
+            // gentler pulse so blobs feel organic
+            gsap.to(orbs, { scale: 1.03, opacity: 0.95, duration: 9, repeat: -1, yoyo: true, stagger: 0.6, ease: "sine.inOut" });
+            // softer entrance
+            gsap.from(orbs, { opacity: 0, scale: 0.90, duration: 1.2, stagger: 0.08, ease: "expo.out" });
+        }
+
+        if (!loading) {
+            gsap.from('[data-anim="card"]', { opacity: 0, y: 18, scale: 0.985, duration: 0.6, stagger: 0.06, ease: "power2.out" });
+        }
+
+        // Keep animations continuous and independent of pointer movement.
+        return () => {
+            tl.kill();
+            gsap.killTweensOf(orbs);
+        };
+    }, [loading, products.length, featured.length]);
+
     const avgRating = (reviews: { rating: number }[]) => {
         if (!reviews.length) return null;
         return (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
@@ -52,6 +100,7 @@ export default function HomePage() {
         <main style={{ minHeight: "100vh", backgroundColor: "var(--color-bg-light)" }}>
             {/* Heritage Hero */}
             <section
+                ref={heroRef}
                 style={{
                     background: "linear-gradient(135deg, var(--color-bg-dark) 0%, #4A2A14 50%, var(--color-bg-card) 100%)",
                     padding: "80px 24px 70px",
@@ -61,11 +110,28 @@ export default function HomePage() {
                 }}
             >
                 {/* Decorative pattern overlay */}
-                <div style={{
-                    position: "absolute", inset: 0, opacity: 0.06,
+                <div ref={heroOverlayRef} style={{
+                    position: "absolute", inset: 0, opacity: 0.14,
                     backgroundImage: "radial-gradient(circle at 20% 50%, var(--color-primary) 1px, transparent 1px), radial-gradient(circle at 80% 50%, var(--color-primary) 1px, transparent 1px)",
-                    backgroundSize: "60px 60px",
+                    backgroundSize: "90px 90px",
+                    backgroundPosition: "50% 50%",
+                    transition: "background-position .6s, opacity .9s",
+                    mixBlendMode: "normal",
                 }} />
+
+                {/* Floating decorative orbs (subtle blurred color blobs) */}
+                <div
+                    ref={(el) => { if (el) orbRefs.current[0] = el; }}
+                    style={{ position: "absolute", left: "4%", top: "14%", width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle at 30% 30%, rgba(224,161,27,0.36), transparent 40%), rgba(224,161,27,0.12)", filter: "blur(8px)", pointerEvents: "none", opacity: 0.92, transform: "translateZ(0)", boxShadow: "0 30px 80px rgba(224,161,27,0.16)" }}
+                />
+                <div
+                    ref={(el) => { if (el) orbRefs.current[1] = el; }}
+                    style={{ position: "absolute", right: "6%", top: "22%", width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle at 40% 40%, rgba(200,140,90,0.32), transparent 40%), rgba(74,42,20,0.12)", filter: "blur(8px)", pointerEvents: "none", opacity: 0.86, transform: "translateZ(0)", boxShadow: "0 24px 60px rgba(200,140,90,0.12)" }}
+                />
+                <div
+                    ref={(el) => { if (el) orbRefs.current[2] = el; }}
+                    style={{ position: "absolute", left: "20%", bottom: "2%", width: 160, height: 160, borderRadius: "50%", background: "radial-gradient(circle at 30% 30%, rgba(150,120,80,0.32), transparent 40%), rgba(150,120,80,0.08)", filter: "blur(8px)", pointerEvents: "none", opacity: 0.86, transform: "translateZ(0)", boxShadow: "0 20px 40px rgba(150,120,80,0.12)" }}
+                />
                 <div style={{ position: "relative", zIndex: 1 }}>
                     <p style={{
                         color: "var(--color-primary)",
@@ -189,7 +255,7 @@ function ProductCard({
 
     return (
         <Link href={`/products/${product.id}`} style={{ textDecoration: "none" }}>
-            <div style={{
+            <div data-anim="card" style={{
                 border: "1px solid #e8dcc8",
                 borderRadius: 12,
                 backgroundColor: "var(--color-bg-light)",

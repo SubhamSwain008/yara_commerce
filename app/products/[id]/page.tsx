@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
     Loader2, ArrowLeft, Star, ShoppingCart, Zap, Package, MapPin, Truck,
     Shield, ChevronLeft, ChevronRight, Heart, Share2, Tag, Ruler, Weight,
-    Palette, Sparkles, Scissors,
+    Palette, Sparkles, Scissors, Plus, Minus,
 } from "lucide-react";
 
 const formatLabel = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -68,6 +68,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     const [error, setError] = useState<string | null>(null);
     const [selectedImage, setSelectedImage] = useState(0);
     const [authenticated, setAuthenticated] = useState(false);
+    const [adding, setAdding] = useState(false);
+    const [cartQty, setCartQty] = useState<number | null>(null);
     const [imgZoom, setImgZoom] = useState(false);
 
     useEffect(() => {
@@ -89,13 +91,67 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         supabase.auth.getUser().then(({ data }) => setAuthenticated(Boolean(data?.user)));
     }, [id]);
 
-    const handleCartAction = () => {
+    useEffect(() => {
+        if (!authenticated) {
+            setCartQty(null);
+            return;
+        }
+
+        const fetchCartStatus = async () => {
+            try {
+                const res = await axios.get(`/api/user/cart`);
+                const items = res.data?.cart?.items || [];
+                const found = items.find((it: any) => it.productId === id);
+                setCartQty(found ? found.quantity : 0);
+            } catch (err) {
+                setCartQty(0);
+            }
+        };
+        fetchCartStatus();
+    }, [authenticated, id]);
+
+    const handleCartAction = async () => {
         if (!authenticated) {
             router.push("/login");
             return;
         }
-        // TODO: Add to cart API
-        alert("Added to cart!");
+        if (!inStock) return;
+        if (cartQty && cartQty > 0) {
+            alert("Already added to cart");
+            return;
+        }
+        try {
+            setAdding(true);
+            await axios.post(`/api/user/cart`, { productId: id, quantity: 1 });
+            // simple feedback; can be replaced with toast later
+            alert("Added to cart");
+            setCartQty(1);
+        } catch (err: any) {
+            alert(err?.response?.data?.error || "Could not add to cart");
+        } finally {
+            setAdding(false);
+        }
+    };
+
+    const changeQuantity = async (newQty: number) => {
+        if (!authenticated) {
+            router.push("/login");
+            return;
+        }
+        if (!inStock && newQty > 0) return;
+        try {
+            setAdding(true);
+            const res = await axios.patch(`/api/user/cart`, { productId: id, quantity: newQty });
+            if (res.data?.removed) {
+                setCartQty(0);
+            } else if (res.data?.item) {
+                setCartQty(res.data.item.quantity);
+            }
+        } catch (err: any) {
+            alert(err?.response?.data?.error || "Could not update cart");
+        } finally {
+            setAdding(false);
+        }
     };
 
     const handleBuyNow = () => {
@@ -359,26 +415,59 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     </div>
 
                     {/* Action Buttons */}
-                    <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
-                        <button
-                            onClick={handleCartAction}
-                            disabled={!inStock}
-                            style={{
-                                flex: 1, padding: "14px 24px", borderRadius: 12,
-                                border: "2px solid var(--color-primary)", backgroundColor: "transparent",
-                                color: "var(--color-primary)", fontWeight: 700, fontSize: 14,
-                                cursor: inStock ? "pointer" : "not-allowed",
-                                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                                opacity: inStock ? 1 : 0.5, transition: "all .2s",
-                            }}
-                            onMouseEnter={(e) => { if (inStock) { e.currentTarget.style.backgroundColor = "rgba(224,161,27,0.08)"; } }}
-                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
-                        >
-                            <ShoppingCart size={18} /> Add to Cart
-                        </button>
+                    <div style={{ display: "flex", gap: 12, marginBottom: 24, alignItems: "center" }}>
+                        {cartQty && cartQty > 0 ? (
+                            <div style={{ display: "flex", gap: 12, alignItems: "center", flex: 1 }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                    <div style={{ fontSize: 12, color: "#8a7560", fontWeight: 700 }}>Already in cart</div>
+                                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                                        <button
+                                            onClick={() => changeQuantity(Math.max(0, (cartQty || 0) - 1))}
+                                            disabled={adding}
+                                            style={{ width: 44, height: 40, borderRadius: 10, border: "1px solid #e8dcc8", background: "white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                                        >
+                                            <Minus size={16} />
+                                        </button>
+                                        <input
+                                            value={cartQty}
+                                            onChange={(e) => {
+                                                const v = Number(e.target.value || 0);
+                                                if (!Number.isNaN(v)) changeQuantity(Math.max(0, Math.floor(v)));
+                                            }}
+                                            style={{ width: 64, textAlign: "center", padding: "10px", borderRadius: 10, border: "1px solid #e8dcc8" }}
+                                        />
+                                        <button
+                                            onClick={() => changeQuantity((cartQty || 0) + 1)}
+                                            disabled={adding}
+                                            style={{ width: 44, height: 40, borderRadius: 10, border: "1px solid #e8dcc8", background: "white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                                        >
+                                            <Plus size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={handleCartAction}
+                                disabled={!inStock || adding}
+                                style={{
+                                    flex: 1, padding: "14px 24px", borderRadius: 12,
+                                    border: "2px solid var(--color-primary)", backgroundColor: "transparent",
+                                    color: "var(--color-primary)", fontWeight: 700, fontSize: 14,
+                                    cursor: inStock ? "pointer" : "not-allowed",
+                                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                                    opacity: inStock ? 1 : 0.5, transition: "all .2s",
+                                }}
+                                onMouseEnter={(e) => { if (inStock) { e.currentTarget.style.backgroundColor = "rgba(224,161,27,0.08)"; } }}
+                                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+                            >
+                                <ShoppingCart size={18} /> Add to Cart
+                            </button>
+                        )}
+
                         <button
                             onClick={handleBuyNow}
-                            disabled={!inStock}
+                            disabled={!inStock || adding}
                             style={{
                                 flex: 1, padding: "14px 24px", borderRadius: 12,
                                 border: "none", backgroundColor: "var(--color-primary)",
