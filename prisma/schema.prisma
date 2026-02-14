@@ -22,13 +22,175 @@ model User {
   userProfile   userProfile?
   userAddress   userAddress[]
   sellerProfile sellerProfile?
+  cart          Cart?
+  wishlist      WishlistItem[]
+  orders        Order[]
+  reviews       sellerProductReviews[]
+  returns       ReturnRequest[]
 }
+
+// ─── Enums ───────────────────────────────────────────────
 
 enum Gender {
   male
   female
   other
 }
+
+enum ProductCategory {
+  saree
+  lehenga
+  dupatta
+  dress_material
+  blouse_piece
+  raw_fabric
+  kurta
+  top
+  bottom
+  stole
+}
+
+enum FabricType {
+  silk
+  cotton
+  linen
+  chiffon
+  georgette
+  crepe
+  satin
+  velvet
+  net
+  organza
+  banarasi
+  tussar
+  chanderi
+  jute
+  polyester
+  rayon
+  khadi
+  muslin
+}
+
+enum WeaveType {
+  handloom
+  powerloom
+  machine_made
+  hand_embroidered
+  block_print
+  screen_print
+  digital_print
+}
+
+enum Occasion {
+  wedding
+  festive
+  casual
+  party
+  office
+  daily_wear
+  bridal
+  puja
+}
+
+enum Color {
+  red
+  blue
+  green
+  yellow
+  orange
+  pink
+  purple
+  white
+  black
+  maroon
+  gold
+  silver
+  beige
+  cream
+  brown
+  multi_color
+  off_white
+  magenta
+  turquoise
+  peach
+  coral
+  teal
+  navy
+  olive
+  lavender
+  rust
+  wine
+  emerald
+  sky_blue
+  pastel
+}
+
+enum Pattern {
+  plain
+  printed
+  woven
+  embroidered
+  zari
+  sequin
+  bandhani
+  ikat
+  patola
+  kalamkari
+  block_print
+  floral
+  geometric
+  abstract
+  traditional
+  paisley
+  checked
+  striped
+}
+
+enum OrderStatus {
+  pending
+  confirmed
+  processing
+  shipped
+  out_for_delivery
+  delivered
+  cancelled
+  returned
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+  cod_pending
+}
+
+enum PaymentMethod {
+  upi
+  card
+  net_banking
+  cod
+  wallet
+}
+
+enum ShippingMethod {
+  standard
+  express
+  local_pickup
+  same_day
+}
+
+enum ReturnReason {
+  defective
+  wrong_item
+  not_as_described
+  size_issue
+  color_mismatch
+  damaged_in_transit
+  changed_mind
+}
+
+// ─── User Models ─────────────────────────────────────────
 
 model userProfile {
   id        String  @id @default(uuid())
@@ -56,16 +218,19 @@ model userAddress {
   user      User    @relation(fields: [userId], references: [id])
 }
 
+// ─── Seller Models ───────────────────────────────────────
+
 model sellerProfile {
-  id                   String         @id @default(uuid())
-  userId               String         @unique
-  isRequestedForSeller Boolean        @default(false)
+  id                   String           @id @default(uuid())
+  userId               String           @unique
+  isRequestedForSeller Boolean          @default(false)
   shopName             String?
   gstNumber            String?
-  isApprovedByAdmin    Boolean        @default(false)
+  isApprovedByAdmin    Boolean          @default(false)
   sellerAddress        sellerAddress?
   sellerDocs           sellerDocs?
-  user                 User           @relation(fields: [userId], references: [id])
+  user                 User             @relation(fields: [userId], references: [id])
+  products             sellerProducts[]
 }
 
 model sellerAddress {
@@ -81,11 +246,162 @@ model sellerAddress {
 }
 
 model sellerDocs {
-  id             String        @id @default(uuid())
-  userId         String        @unique
-  panCardFront   String?
-  panCardBack    String?
+  id              String        @id @default(uuid())
+  userId          String        @unique
+  panCardFront    String?
+  panCardBack     String?
   aadharCardFront String?
-  aadharCardBack String?
-  seller         sellerProfile @relation(fields: [userId], references: [id])
+  aadharCardBack  String?
+  seller          sellerProfile @relation(fields: [userId], references: [id])
+}
+
+// ─── Product Models ──────────────────────────────────────
+
+model sellerProducts {
+  id             String          @id @default(uuid())
+  userId         String
+  name           String
+  description    String
+  price          Float
+  mrp            Float?
+  stock          Int
+  category       ProductCategory
+  subCategory    String?
+  fabricType     FabricType?
+  weaveType      WeaveType?
+  occasion       Occasion[]
+  color          Color?
+  pattern        Pattern?
+  length         Float?
+  width          Float?
+  weight         Float?
+  blouseIncluded Boolean         @default(false)
+  washCare       String?
+  origin         String?
+  images         String[]
+  isAvailable    Boolean         @default(true)
+  isFeatured     Boolean         @default(false)
+  tags           String[]
+  sku            String?         @unique
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  productReviews sellerProductReviews[]
+  orderItems     OrderItem[]
+  cartItems      CartItem[]
+  wishlistItems  WishlistItem[]
+  seller         sellerProfile          @relation(fields: [userId], references: [id])
+}
+
+model sellerProductReviews {
+  id            String         @id @default(uuid())
+  userId        String
+  productId     String
+  rating        Int
+  comment       String
+  pictures      String[]
+  createdAt     DateTime       @default(now())
+  user          User           @relation(fields: [userId], references: [id])
+  sellerProduct sellerProducts @relation(fields: [productId], references: [id])
+}
+
+// ─── Cart & Wishlist ─────────────────────────────────────
+
+model Cart {
+  id     String     @id @default(uuid())
+  userId String     @unique
+  items  CartItem[]
+  user   User       @relation(fields: [userId], references: [id])
+}
+
+model CartItem {
+  id        String         @id @default(uuid())
+  cartId    String
+  productId String
+  quantity  Int            @default(1)
+  cart      Cart           @relation(fields: [cartId], references: [id])
+  product   sellerProducts @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId])
+}
+
+model WishlistItem {
+  id        String         @id @default(uuid())
+  userId    String
+  productId String
+  createdAt DateTime       @default(now())
+  user      User           @relation(fields: [userId], references: [id])
+  product   sellerProducts @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])
+}
+
+// ─── Order System ────────────────────────────────────────
+
+model Order {
+  id             String         @id @default(uuid())
+  userId         String
+  status         OrderStatus    @default(pending)
+  paymentStatus  PaymentStatus  @default(pending)
+  paymentMethod  PaymentMethod?
+  shippingMethod ShippingMethod @default(standard)
+  totalAmount    Float
+  discount       Float          @default(0)
+  shippingCharge Float          @default(0)
+  finalAmount    Float
+  couponId       String?
+  addressId      String
+  trackingId     String?
+  notes          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user    User            @relation(fields: [userId], references: [id])
+  coupon  Coupon?         @relation(fields: [couponId], references: [id])
+  items   OrderItem[]
+  returns ReturnRequest[]
+}
+
+model OrderItem {
+  id         String         @id @default(uuid())
+  orderId    String
+  productId  String
+  sellerId   String
+  quantity   Int
+  unitPrice  Float
+  totalPrice Float
+  order      Order          @relation(fields: [orderId], references: [id])
+  product    sellerProducts @relation(fields: [productId], references: [id])
+}
+
+// ─── Coupons ─────────────────────────────────────────────
+
+model Coupon {
+  id              String   @id @default(uuid())
+  code            String   @unique
+  discountPercent Float?
+  discountFlat    Float?
+  minOrderAmount  Float    @default(0)
+  maxDiscount     Float?
+  usageLimit      Int?
+  usedCount       Int      @default(0)
+  validFrom       DateTime
+  validTill       DateTime
+  isActive        Boolean  @default(true)
+  orders          Order[]
+}
+
+// ─── Returns ─────────────────────────────────────────────
+
+model ReturnRequest {
+  id          String       @id @default(uuid())
+  orderId     String
+  userId      String
+  reason      ReturnReason
+  description String?
+  pictures    String[]
+  status      String       @default("pending")
+  createdAt   DateTime     @default(now())
+  order       Order        @relation(fields: [orderId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
 }

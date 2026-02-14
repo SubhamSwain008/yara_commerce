@@ -147,6 +147,7 @@ export default function SignupForm() {
       }, 1000);
     } else {
       setMsg("Success! Check your email for a confirmation link.");
+      alert("Success! Check your email for a confirmation link.");
       setLoading(false);
     }
   }

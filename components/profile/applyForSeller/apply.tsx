@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import axios, { AxiosResponse } from "axios";
 import { Upload, CheckCircle, ArrowRight, ArrowLeft, Store, MapPin, FileText, Loader2 } from "lucide-react";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 
 type Step = 1 | 2 | 3;
 
@@ -14,6 +14,7 @@ interface DocFile {
 }
 
 export default function ApplyForSeller() {
+    const router = useRouter();
     const [step, setStep] = useState<Step>(1);
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
@@ -254,10 +255,10 @@ export default function ApplyForSeller() {
                             <div className="flex flex-col items-center flex-1">
                                 <div
                                     className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${isDone
-                                            ? "bg-green-500 text-white"
-                                            : isActive
-                                                ? "bg-black text-white"
-                                                : "bg-gray-200 text-gray-500"
+                                        ? "bg-green-500 text-white"
+                                        : isActive
+                                            ? "bg-black text-white"
+                                            : "bg-gray-200 text-gray-500"
                                         }`}
                                 >
                                     {isDone ? <CheckCircle size={18} /> : <Icon size={18} />}
@@ -395,8 +396,8 @@ export default function ApplyForSeller() {
                                     </label>
                                     <label
                                         className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-4 cursor-pointer transition-colors min-h-[140px] ${d.preview
-                                                ? "border-green-300 bg-green-50"
-                                                : "border-gray-300 hover:border-gray-400 bg-gray-50"
+                                            ? "border-green-300 bg-green-50"
+                                            : "border-gray-300 hover:border-gray-400 bg-gray-50"
                                             }`}
                                     >
                                         {d.preview ? (
