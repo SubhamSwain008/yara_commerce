@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Mail, Phone, MapPin, Facebook, Instagram, Twitter, Youtube, ArrowRight, Heart } from "lucide-react";
+import { Mail, Phone, MapPin, Facebook, Instagram, Twitter, Youtube, ArrowRight, Heart, Truck, Check, RefreshCw ,LockIcon} from "lucide-react";
 import { useState } from "react";
 
 /* ═══════════════════════════════════════════════════════════
@@ -54,46 +54,19 @@ export default function Footer() {
     return (
         <footer style={{ backgroundColor: "var(--color-bg-dark)", color: "var(--color-text-light)" }}>
             {/* ─── Newsletter Banner ─── */}
-            <div
-                style={{
-                    background: "linear-gradient(135deg, var(--color-primary) 0%, #C88912 100%)",
-                    padding: "40px 24px",
-                }}
-            >
-                <div
-                    style={{
-                        maxWidth: 1200,
-                        margin: "0 auto",
-                        display: "flex",
-                        flexWrap: "wrap",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: 24,
-                    }}
-                >
-                    <div style={{ flex: "1 1 300px" }}>
-                        <h3
-                            style={{
-                                fontSize: 22,
-                                fontWeight: 800,
-                                color: "var(--color-bg-dark)",
-                                marginBottom: 4,
-                            }}
-                        >
+            <div className="bg-gradient-to-br from-[var(--color-primary)] to-[#C88912] py-10 px-6">
+                <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex-1 min-w-[300px] text-center md:text-left">
+                        <h3 className="text-2xl font-extrabold text-[var(--color-bg-dark)] mb-1">
                             Stay Updated
                         </h3>
-                        <p style={{ fontSize: 14, color: "rgba(43,26,18,0.7)" }}>
+                        <p className="text-sm text-[rgba(43,26,18,0.7)]">
                             Subscribe for exclusive offers, new collections & artisan stories
                         </p>
                     </div>
                     <form
                         onSubmit={handleSubscribe}
-                        style={{
-                            flex: "1 1 320px",
-                            display: "flex",
-                            gap: 8,
-                            maxWidth: 440,
-                        }}
+                        className="flex-1 w-full md:w-auto flex flex-col sm:flex-row gap-2 max-w-[440px]"
                     >
                         <input
                             type="email"
@@ -101,34 +74,11 @@ export default function Footer() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            style={{
-                                flex: 1,
-                                padding: "12px 16px",
-                                borderRadius: 10,
-                                border: "none",
-                                fontSize: 14,
-                                backgroundColor: "rgba(255,255,255,0.9)",
-                                color: "var(--color-bg-dark)",
-                                outline: "none",
-                            }}
+                            className="flex-1 py-3 px-4 rounded-xl border-none text-sm bg-[rgba(255,255,255,0.9)] text-[var(--color-bg-dark)] outline-none placeholder:text-gray-500 focus:ring-2 focus:ring-[var(--color-bg-dark)]/20 transition-all"
                         />
                         <button
                             type="submit"
-                            style={{
-                                padding: "12px 24px",
-                                borderRadius: 10,
-                                border: "none",
-                                backgroundColor: "var(--color-bg-dark)",
-                                color: "var(--color-primary)",
-                                fontWeight: 700,
-                                fontSize: 14,
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 6,
-                                transition: "all 0.2s",
-                                whiteSpace: "nowrap",
-                            }}
+                            className="py-3 px-6 rounded-xl border-none bg-[var(--color-bg-dark)] text-[var(--color-primary)] font-bold text-sm cursor-pointer flex items-center justify-center gap-1.5 transition-all hover:bg-black/90 active:scale-95 whitespace-nowrap"
                         >
                             {subscribed ? "Subscribed ✓" : <>Subscribe <ArrowRight size={14} /></>}
                         </button>
@@ -156,7 +106,7 @@ export default function Footer() {
                                 letterSpacing: "0.5px",
                             }}
                         >
-                            Srinibas Vastra
+                            want to build similar website?
                         </h2>
                         <p
                             style={{
@@ -166,8 +116,7 @@ export default function Footer() {
                                 marginBottom: 20,
                             }}
                         >
-                            Celebrating India&rsquo;s rich textile heritage. Authentic handloom
-                            sarees, fabrics & textiles sourced directly from master artisans.
+                            to build similar website contact me at the email/number below.
                         </p>
 
                         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -181,15 +130,16 @@ export default function Footer() {
                                     color: "var(--color-text-muted)",
                                     textDecoration: "none",
                                     transition: "color 0.2s",
+                                    backgroundColor: "var(--color-bg-light)",
                                 }}
                                 onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-primary)")}
                                 onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-text-muted)")}
                             >
                                 <Phone size={14} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
-                                +91 98765 43210
+                                +91 8117032137
                             </a>
                             <a
-                                href="mailto:contact@srinibasvastra.com"
+                                href="mailto:subhamswain8456@gmail.com"
                                 style={{
                                     display: "flex",
                                     alignItems: "center",
@@ -203,7 +153,7 @@ export default function Footer() {
                                 onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-text-muted)")}
                             >
                                 <Mail size={14} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
-                                contact@srinibasvastra.com
+                                subhamswain8456@gmail.com
                             </a>
                             <div
                                 style={{
@@ -414,10 +364,10 @@ export default function Footer() {
                     }}
                 >
                     {[
-                        { emoji: "🚚", text: "Free Shipping on ₹999+" },
-                        { emoji: "🔒", text: "Secure Payments" },
-                        { emoji: "✅", text: "100% Authentic Handloom" },
-                        { emoji: "↩️", text: "Easy Returns & Exchange" },
+                        { emoji: <Truck size={16} />, text: "Free Shipping on ₹999+" },
+                        { emoji: <LockIcon size={16} />, text: "Secure Payments" },
+                        { emoji: <Check size={16} />, text: "100% Authentic Handloom" },
+                        { emoji: <RefreshCw size={16} />, text: "Easy Returns & Exchange" },
                     ].map((item) => (
                         <div
                             key={item.text}
