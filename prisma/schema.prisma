@@ -94,6 +94,7 @@ enum Occasion {
 
 enum Color {
   red
+  cyan
   blue
   green
   yellow
